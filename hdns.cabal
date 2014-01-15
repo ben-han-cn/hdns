@@ -76,4 +76,4 @@ Test-Suite spec
 
 Source-Repository head
   Type:                 git
-  Location:             git://github.com/kazu-yamamoto/dns.git
+  Location:             https://github.com/ben-han-cn/hdns.git
