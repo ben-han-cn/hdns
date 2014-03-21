@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings#-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, TypeSynonymInstances #-}
 
 module Network.HDNS.Internal where
 
@@ -14,17 +14,60 @@ import Network.HDNS.Util
 ----------------------------------------------------------------
 
 -- | Type for domain.
-type Domain = ByteString
-parent :: Domain -> Maybe Domain
-parent name = if isRoot name then Nothing 
-                else Just $ BS.drop 1 (BS.dropWhile (/= '.') name)
+newtype Domain = Domain {
+    rawName :: ByteString
+} deriving (Eq, Ord)
+
+parentDomain :: Domain -> Maybe Domain
+parentDomain name = case popLabel name of
+                        Just (_, parent) -> Just parent
+                        Nothing -> Nothing
+                    
+instance StringLike Domain where
+    toString = BS.unpack . rawName
+    fromString str = Just (Domain $ BS.pack $ map toLower str)
+
+instance Show Domain where
+    show = toString
 
 (+++) :: Domain -> Domain -> Domain
-(+++) name1 name2 = if isRoot name2 then name1 else name1 `BS.append` name2
+(+++) name1 name2  
+    | isFQDN name1 = if isRoot name2 
+                     then name1 
+                     else concatDomains [name1, name2]
+    | otherwise = if isRoot name2 
+                  then concatDomains [name1, name2] 
+                  else concatDomains [name1, rootDomain, name2]
+    where 
+        concatDomains domains = Domain $ BS.concat (map rawName domains)
 
 isRoot :: Domain -> Bool
-isRoot name = name == "."
+isRoot name = rawName name == rawName rootDomain
 
+isFQDN :: Domain -> Bool
+isFQDN name | isRoot name = True
+            | (BS.last $ rawName name) == '.' = True
+            | otherwise = False
+
+qualifyDomain :: Domain -> Domain
+qualifyDomain name 
+    | isFQDN name = name
+    | otherwise = name +++ rootDomain
+
+rootDomain :: Domain
+rootDomain = Domain $ BS.pack "."
+
+domainLen :: Domain -> Int
+domainLen = BS.length . rawName 
+
+popLabel :: Domain -> Maybe (Domain, Domain)
+popLabel name | isRoot name = Nothing
+              | otherwise = 
+                    let (label, parent) = BS.break (=='.') (rawName name)
+                        parent' = if BS.null parent || parent == rawName rootDomain 
+                                  then rootDomain 
+                                  else Domain(BS.drop 1 parent)
+                    in Just (Domain label, parent')
 ----------------------------------------------------------------
 
 -- | Types for resource records.
@@ -44,6 +87,10 @@ instance CodeMapper TYPE where
               , (SRV,   33)
               ]
     unknowCode = UNKNOWNTYPE
+
+instance StringLike TYPE where
+    fromString str = Just $ read (map toUpper str)
+    toString = show
 ----------------------------------------------------------------
 data Klass = IN | CS | CH | HS | UNKNOWNKLASS Word16 deriving (Eq, Show, Read)
 
@@ -55,6 +102,10 @@ instance CodeMapper Klass where
                 , (HS,  4)
                 ]
     unknowCode = UNKNOWNKLASS
+
+instance StringLike Klass where
+    fromString str = Just $ read (map toUpper str)
+    toString = show
 ----------------------------------------------------------------
 
 -- | An enumeration of all possible DNS errors that can occur.
@@ -196,15 +247,15 @@ data RDATA = RD_NS Domain | RD_CNAME Domain | RD_MX Word16 Domain | RD_PTR Domai
            | RD_OTH [Word8] deriving (Eq)
 
 instance Show RDATA where
-  show (RD_NS dom) = BS.unpack dom
-  show (RD_MX prf dom) = BS.unpack dom ++ " " ++ show prf
-  show (RD_CNAME dom) = BS.unpack dom
+  show (RD_NS dom) = show dom
+  show (RD_MX prf dom) = show dom ++ " " ++ show prf
+  show (RD_CNAME dom) = show dom
   show (RD_A a) = show a
   show (RD_AAAA aaaa) = show aaaa
   show (RD_TXT txt) = BS.unpack txt
-  show (RD_SOA mn _ _ _ _ _ mi) = BS.unpack mn ++ " " ++ show mi
-  show (RD_PTR dom) = BS.unpack dom
-  show (RD_SRV pri wei prt dom) = show pri ++ " " ++ show wei ++ " " ++ show prt ++ BS.unpack dom
+  show (RD_SOA mn _ _ _ _ _ mi) = show mn ++ " " ++ show mi
+  show (RD_PTR dom) = show dom
+  show (RD_SRV pri wei prt dom) = show pri ++ " " ++ show wei ++ " " ++ show prt ++ show dom
   show (RD_OTH is) = show is
 
 ----------------------------------------------------------------

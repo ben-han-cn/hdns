@@ -4,19 +4,20 @@
 module Network.HDNS.Types (
   -- * Domain
     Domain
-  -- * TYPE
+  , parentDomain
+  , (+++)
+  , rootDomain
+  , popLabel
+
   , TYPE (..) 
   , Klass (..)
-  , fromWord16, toWord16, fromString
-  -- * DNS Error
+  , fromWord16, toWord16
+
   , DNSError (..)
-  -- * DNS Format
   , DNSFormat (..)
-  -- * DNS Header
   , DNSHeader (..)
-  -- * DNS Flags
+
   , DNSFlags (..)
-  -- * DNS Body
   , QorR (..)
   , OPCODE (..)
   , RCODE (..)
@@ -24,6 +25,7 @@ module Network.HDNS.Types (
   , Question (..)
   , RDATA (..)
   , responseA, responseAAAA
+  , fromString, toString
   ) where
 
 import Network.HDNS.Internal

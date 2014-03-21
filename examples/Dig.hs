@@ -9,36 +9,20 @@ import qualified Data.ByteString.Lazy.Char8 as BL (ByteString)
 import qualified Data.ByteString.Lazy as BLL
 import Data.ByteString.Lazy hiding (putStrLn, filter, length)
 
-qid :: Word16
-qid = 10
-
-stringToDomain :: String -> DNS.Domain
-stringToDomain str = B.pack str
-
-composeQuestion :: String -> DNS.TYPE -> B.ByteString
-composeQuestion name t = 
-    let question = DNS.Question (stringToDomain name) t DNS.IN 
-        in B.concat . BLL.toChunks $ DNS.composeQuery qid [question]
-
-
-makeAddrInfo :: String -> IO AddrInfo
-makeAddrInfo addr = do
-    proto <- getProtocolNumber "udp"
-    let hints = defaultHints {
-            addrFlags = [AI_ADDRCONFIG, AI_NUMERICHOST, AI_PASSIVE]
-          , addrSocketType = Datagram
-          , addrProtocol = proto
-          }   
-    a:_ <- getAddrInfo (Just hints) (Just addr) (Just "domain")
-    return a
-
 main :: IO ()
 main = withSocketsDo $ do
-    [server_ip, qname, qtype] <- getArgs
-    s <- socket AF_INET Datagram defaultProtocol
-    addr <- makeAddrInfo server_ip
-    sendAllTo s (composeQuestion qname (DNS.fromString qtype)) (addrAddress addr)
-    (bs, _) <- recvFrom s 512
-    case DNS.decode (fromChunks [bs]) of
-        (Right msg) -> print  msg
-        (Left error) -> print $ "error:\n" ++ error
+    [ip , n, t] <- getArgs
+    case (DNS.fromString n, DNS.fromString t) of
+        (Just domain, Just qtype) -> doQuery ip domain qtype
+        (Nothing, _) -> putStrLn $ "name isn't valid: " ++ n
+        (_, Nothing) -> putStrLn $ "type isn't valid: " ++ t
+
+
+doQuery :: String -> DNS.Domain -> DNS.TYPE -> IO ()
+doQuery ip n t = 
+    DNS.withResolver ip (\resolver -> do
+        response <- DNS.doQuery resolver n t
+        case response of
+            (Right msg) -> print  msg
+            (Left error) -> print $ "error:\n" ++ error)
+

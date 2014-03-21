@@ -57,20 +57,21 @@ writeData d = do
     return $ writeByteString d
 
 writeDomain :: Domain -> Render
-writeDomain name | BS.null name = writeUint8 0
-writeDomain name = do
-    (DomainOffsets offsets writePos) <- get
-    case M.lookup name offsets of
-        Just pos -> writeUint16 . fromIntegral . toInteger $ (pos .|. 0xc000)
-        Nothing -> (put $ DomainOffsets (M.insert name writePos offsets) writePos) >>
-                    writeLabel firstLabel <> writeDomain parentDomain 
-    where 
-        (firstLabel, parentDomain') = BS.break (=='.') name
-        parentDomain = if BS.null parentDomain' then parentDomain' else BS.drop 1 parentDomain'
+writeDomain name 
+    | isRoot name = writeUint8 0
+    | otherwise = do
+        (DomainOffsets offsets writePos) <- get
+        case M.lookup name offsets of
+            Just pos -> writeUint16 . fromIntegral . toInteger $ (pos .|. 0xc000)
+            Nothing -> (put $ DomainOffsets (M.insert name writePos offsets) writePos) >>
+                writeLabel firstLabel <> writeDomain parentDomain 
+        where 
+            Just (firstLabel, parentDomain) = popLabel name
+            
 
 writeLabel :: Domain -> Render
-writeLabel label = (writeUint8 . intToWord $ BS.length label)
-                   <> writeData label
+writeLabel label = (writeUint8 . intToWord $ domainLen label)
+                   <> writeData (rawName label)
 
 rend :: Render -> BL.ByteString
 rend = toLazyByteString . fromWrite . flip evalState initRenderState
@@ -88,7 +89,7 @@ moveReadPos n (OffsetToDomain offsets pos) = OffsetToDomain offsets (pos + n)
 
 recordDomain :: Domain -> Int -> OffsetToDomain -> OffsetToDomain
 recordDomain name offset (OffsetToDomain offsets pos) = 
-            OffsetToDomain (IM.insert offset name offsets) pos
+    OffsetToDomain (IM.insert offset name offsets) pos
 
 fetchDomain :: Int -> OffsetToDomain -> Maybe Domain
 fetchDomain offset (OffsetToDomain offsets pos) = IM.lookup offset offsets
@@ -126,7 +127,7 @@ readDomain = do
     offsets@(OffsetToDomain _ currentPos) <- get
     labelLen <- readUint8
     if labelLen == 0 then
-        return "."
+        return rootDomain
     else do
         let n = normalize labelLen
         if isPointer labelLen then do
@@ -136,7 +137,7 @@ readDomain = do
         else do
             label <- readData . fromIntegral $ n
             parentDomain <- readDomain
-            let domain = (label `BS.append` ".") +++ parentDomain
+            let domain = (Domain label) +++ parentDomain
             modify $ recordDomain domain currentPos
             return domain
     where 

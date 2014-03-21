@@ -6,20 +6,13 @@
 --   library/daemon authors may need to use the lower-level one.
 --
 module Network.HDNS (
-  -- * High level
-  module Network.HDNS.Types
-  -- | All of the types that the other modules use.
-
-  -- * Low level
+    module Network.HDNS.Types
   , module Network.HDNS.Decode
-  -- | Decoding a response.
-
   , module Network.HDNS.Encode
-  -- | Encoding a query.
-
+  , module Network.HDNS.SimpleResolver
   ) where
 
 import Network.HDNS.Types
-import Network.HDNS.MessageRender
 import Network.HDNS.Decode
 import Network.HDNS.Encode
+import Network.HDNS.SimpleResolver
