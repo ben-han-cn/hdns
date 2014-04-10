@@ -31,6 +31,10 @@ module Network.ZDNS.Types (
   , getRA
   , getRD
   , getTC
+
+  , RRset(..)
+  , RdataField(..)
+  , RdataFieldType(..)
   ) where
 
 import Network.ZDNS.Types.Name

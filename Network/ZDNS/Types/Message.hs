@@ -97,37 +97,37 @@ getAA :: Word16 -> Bool
 getAA flags = getFlag flags aaField == 1
 setAA :: Bool -> Word16 -> Word16
 setAA isaa flags = setFlag flags aaField
-                        (if isaa then 0 else 1)
+                        (if isaa then 1 else 0)
 
 getTC :: Word16 -> Bool
 getTC flags = getFlag flags tcField == 1
 setTC :: Bool -> Word16 -> Word16
 setTC istc flags = setFlag flags tcField
-                        (if istc then 0 else 1)
+                        (if istc then 1 else 0)
 
 getRD :: Word16 -> Bool
 getRD flags = getFlag flags rdField == 1
 setRD :: Bool -> Word16 -> Word16
 setRD isrd flags = setFlag flags rdField
-                        (if isrd then 0 else 1)
+                        (if isrd then 1 else 0)
 
 getRA :: Word16 -> Bool
 getRA flags = getFlag flags raField == 1
 setRA :: Bool -> Word16 -> Word16
 setRA isra flags = setFlag flags raField
-                        (if isra then 0 else 1)
+                        (if isra then 1 else 0)
 
 getAD :: Word16 -> Bool
 getAD flags = getFlag flags adField == 1
 setAD :: Bool -> Word16 -> Word16
 setAD isad flags = setFlag flags adField
-                        (if isad then 0 else 1)
+                        (if isad then 1 else 0)
 
 getCD :: Word16 -> Bool
 getCD flags = getFlag flags cdField == 1
 setCD :: Bool -> Word16 -> Word16
 setCD iscd flags = setFlag flags cdField
-                        (if iscd then 0 else 1)
+                        (if iscd then 1 else 0)
 
 getRCode :: Word16 -> RCode
 getRCode flags = toEnum $ getFlag flags rcodeField

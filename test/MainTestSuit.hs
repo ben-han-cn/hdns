@@ -15,6 +15,7 @@ import Network.ZDNS
 import Ben.Util.String (join)
 import Control.Monad (replicateM)
 import qualified Data.ByteString as B
+import Data.Vector ((!))
 import qualified Data.ByteString.Lazy as BL
 import DomainTreeProp
 import ZDNSGen
@@ -140,12 +141,36 @@ propParseHeader = case parse readHeader (BL.fromStrict . B.pack $ messageHeaderR
 --
 --;; ANSWER SECTION (1  record)
 --66e.cc. 481 IN  A   183.86.193.81
-messageRawData :: [Word8]
-messageRawData = [95, 225, 128, 128, 0, 1, 0, 1, 0, 0, 0, 0, 3, 54, 54, 101, 2, 99, 99, 0, 0, 1, 0, 1, 192, 12, 0, 1, 0, 1, 0, 0, 1, 225, 0, 4, 183, 86, 193, 81]
-propParseMessage = case parse readMessage (BL.fromStrict . B.pack $ messageRawData) of
+messageRawDataA :: [Word8]
+messageRawDataA = [95, 225, 128, 128, 0, 1, 0, 1, 0, 0, 0, 0, 3, 54, 54, 101, 2, 99, 99, 0, 0, 1, 0, 1, 192, 12, 0, 1, 0, 1, 0, 0, 1, 225, 0, 4, 183, 86, 193, 81]
+propParseMessageA = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataA) of
                         Right(m, _) -> and [(hid . header $ m) == 24545
                                            ,(anscount . header $ m) == 1]
 
+--;; HEADER SECTION
+--;; id = 4820
+--;; qr = true    opcode = Query    aa = false    tc = false    rd = true
+--;; ra = true    ad = false    cd = false    rcode  = NOERROR
+--;; qdcount = 1  ancount = 1  nscount = 0  arcount = 0
+--
+--;; QUESTION SECTION (1  record)
+--;; knet.cn. IN  MX
+--
+--;; ANSWER SECTION (1  record)
+--knet.cn.    303 IN  MX  10 mail01.knet.cn.
+messageRawDataMX :: [Word8]
+messageRawDataMX = [18, 212, 129, 128, 0, 1, 0, 1, 0, 0, 0, 0, 4, 107, 110, 101, 116, 2, 99, 110, 0, 0, 15, 0, 1, 192, 12, 0, 15, 0, 1, 0, 0, 1, 47, 0, 11, 0, 10, 6, 109, 97, 105, 108, 48, 49, 192, 12]
+propParseMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataMX) of
+                        Right(m, _) -> and [(hid . header $ m) == 4820
+                                           ,(anscount . header $ m) == 1
+                                           ,(mxPriorty . mxRdata . answerRRset $ m) == 10
+                                           ,(mxDomain . mxRdata . answerRRset $ m) == (fromJust . mkDomain $ "mail01.knet.cn.")]
+                     where answerRRset m = (answer m) ! 0
+                           mxRdata rrset = (rrsetRdatas rrset) ! 0 
+                           mxPriorty rdata = let (RDFShort priority) = rdata ! 0
+                                                in priority
+                           mxDomain rdata = let (RDFCompressedDomain name) = rdata ! 1
+                                                in name
 
 
 messageRawData2 :: [Word8]
@@ -153,6 +178,8 @@ messageRawData2 = [248, 0, 129, 128, 0, 1, 0, 18, 0, 0, 0, 0, 4, 110, 101, 119, 
 propRenderMessage = case parse readMessage (BL.fromStrict . B.pack $ messageRawData2) of
                         Right(m, _) -> (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawData2
 
+propRenderMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataMX) of
+                        Right(m, _) -> (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawDataMX
                                            
 main :: IO ()
 main = defaultMain tests
@@ -175,8 +202,10 @@ tests =
         testProperty "parseDomain" propParseDomain
      ,  testProperty "parseQuestion" propParseQuestion
      ,  testProperty "parseHeader" propParseHeader
-     ,  testProperty "parse whole message" propParseMessage
+     ,  testProperty "parse whole message for A" propParseMessageA
+     ,  testProperty "parse whole message for mx" propParseMessageMX
      ,  testProperty "render whole message" propRenderMessage
+     ,  testProperty "render whole message for mx" propRenderMessageMX
     ]
 
     ,testGroup "domain tree"

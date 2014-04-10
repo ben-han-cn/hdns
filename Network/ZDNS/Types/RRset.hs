@@ -108,7 +108,7 @@ type RdataDescriptor = [RdataFieldType]
 getRdataDescriptor :: RRType -> RdataDescriptor
 getRdataDescriptor NS = [RCompressedDomain]
 getRdataDescriptor CNAME = [RCompressedDomain]
-getRdataDescriptor MX = [RCompressedDomain]
+getRdataDescriptor MX = [RShort, RCompressedDomain]
 getRdataDescriptor PTR = [RCompressedDomain]
 getRdataDescriptor SOA = [RCompressedDomain
                         , RCompressedDomain
