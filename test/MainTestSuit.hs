@@ -15,7 +15,7 @@ import Network.ZDNS
 import Ben.Util.String (join)
 import Control.Monad (replicateM)
 import qualified Data.ByteString as B
-import Data.Vector ((!))
+import qualified Data.Vector as V
 import qualified Data.ByteString.Lazy as BL
 import DomainTreeProp
 import ZDNSGen
@@ -147,29 +147,53 @@ propParseMessageA = case parse readMessage (BL.fromStrict . B.pack $ messageRawD
                         Right(m, _) -> and [(hid . header $ m) == 24545
                                            ,(anscount . header $ m) == 1]
 
---;; HEADER SECTION
---;; id = 4820
---;; qr = true    opcode = Query    aa = false    tc = false    rd = true
---;; ra = true    ad = false    cd = false    rcode  = NOERROR
---;; qdcount = 1  ancount = 1  nscount = 0  arcount = 0
+
+--;; id = 52615
+--;; qr = true    opcode = Query    aa = true    tc = false    rd = true
+--;; ra = false    ad = false    cd = false    rcode  = NOERROR
+--;; qdcount = 1  ancount = 1  nscount = 4  arcount = 13
 --
 --;; QUESTION SECTION (1  record)
 --;; knet.cn. IN  MX
 --
 --;; ANSWER SECTION (1  record)
---knet.cn.    303 IN  MX  10 mail01.knet.cn.
+--knet.cn.    600 IN  MX  10 mail01.knet.cn.
+--
+--;; AUTHORITY SECTION (4  records)
+--knet.cn.    3600    IN  NS  lns1.zdnscloud.info.
+--knet.cn.    3600    IN  NS  gns2.zdnscloud.net.cn.
+--knet.cn.    3600    IN  NS  lns2.zdnscloud.biz.
+--knet.cn.    3600    IN  NS  gns1.zdnscloud.net.
+--
+--;; ADDITIONAL SECTION (13  records)
+--mail01.knet.cn. 600 IN  A   202.173.10.124
+--gns1.zdnscloud.net. 3600    IN  A   1.8.152.1
+--gns2.zdnscloud.net.cn.  3600    IN  A   1.8.153.1
+--lns1.zdnscloud.info.    3600    IN  A   119.167.233.233
+--lns1.zdnscloud.info.    3600    IN  A   182.131.23.11
+--lns1.zdnscloud.info.    3600    IN  A   1.8.101.253
+--lns1.zdnscloud.info.    3600    IN  A   111.12.148.104
+--lns1.zdnscloud.info.    3600    IN  AAAA    2401:8D00:4::1
+--lns2.zdnscloud.biz. 3600    IN  A   1.8.101.252
+--lns2.zdnscloud.biz. 3600    IN  A   111.12.148.105
+--lns2.zdnscloud.biz. 3600    IN  A   119.167.233.235
+--lns2.zdnscloud.biz. 3600    IN  A   182.131.23.12
+--lns2.zdnscloud.biz. 3600    IN  AAAA    2401:8D00:6::1
 messageRawDataMX :: [Word8]
-messageRawDataMX = [18, 212, 129, 128, 0, 1, 0, 1, 0, 0, 0, 0, 4, 107, 110, 101, 116, 2, 99, 110, 0, 0, 15, 0, 1, 192, 12, 0, 15, 0, 1, 0, 0, 1, 47, 0, 11, 0, 10, 6, 109, 97, 105, 108, 48, 49, 192, 12]
+messageRawDataMX = [205, 135, 133, 0, 0, 1, 0, 1, 0, 4, 0, 13, 4, 107, 110, 101, 116, 2, 99, 110, 0, 0, 15, 0, 1, 192, 12, 0, 15, 0, 1, 0, 0, 2, 88, 0, 11, 0, 10, 6, 109, 97, 105, 108, 48, 49, 192, 12, 192, 12, 0, 2, 0, 1, 0, 0, 14, 16, 0, 21, 4, 108, 110, 115, 49, 9, 122, 100, 110, 115, 99, 108, 111, 117, 100, 4, 105, 110, 102, 111, 0, 192, 12, 0, 2, 0, 1, 0, 0, 14, 16, 0, 21, 4, 103, 110, 115, 50, 9, 122, 100, 110, 115, 99, 108, 111, 117, 100, 3, 110, 101, 116, 192, 17, 192, 12, 0, 2, 0, 1, 0, 0, 14, 16, 0, 20, 4, 108, 110, 115, 50, 9, 122, 100, 110, 115, 99, 108, 111, 117, 100, 3, 98, 105, 122, 0, 192, 12, 0, 2, 0, 1, 0, 0, 14, 16, 0, 20, 4, 103, 110, 115, 49, 9, 122, 100, 110, 115, 99, 108, 111, 117, 100, 3, 110, 101, 116, 0, 192, 39, 0, 1, 0, 1, 0, 0, 2, 88, 0, 4, 202, 173, 10, 124, 192, 158, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 1, 8, 152, 1, 192, 93, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 1, 8, 153, 1, 192, 60, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 119, 167, 233, 233, 192, 60, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 182, 131, 23, 11, 192, 60, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 1, 8, 101, 253, 192, 60, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 111, 12, 148, 104, 192, 60, 0, 28, 0, 1, 0, 0, 14, 16, 0, 16, 36, 1, 141, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 192, 126, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 1, 8, 101, 252, 192, 126, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 111, 12, 148, 105, 192, 126, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 119, 167, 233, 235, 192, 126, 0, 1, 0, 1, 0, 0, 14, 16, 0, 4, 182, 131, 23, 12, 192, 126, 0, 28, 0, 1, 0, 0, 14, 16, 0, 16, 36, 1, 141, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 propParseMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataMX) of
-                        Right(m, _) -> and [(hid . header $ m) == 4820
+                        Right(m, _) -> and [(hid . header $ m) == 52615
                                            ,(anscount . header $ m) == 1
+                                           ,(authcount . header $ m) == 4
+                                           ,(addicount . header $ m) == 13
                                            ,(mxPriorty . mxRdata . answerRRset $ m) == 10
-                                           ,(mxDomain . mxRdata . answerRRset $ m) == (fromJust . mkDomain $ "mail01.knet.cn.")]
-                     where answerRRset m = (answer m) ! 0
-                           mxRdata rrset = (rrsetRdatas rrset) ! 0 
-                           mxPriorty rdata = let (RDFShort priority) = rdata ! 0
+                                           ,(mxDomain . mxRdata . answerRRset $ m) == (fromJust . mkDomain $ "mail01.knet.cn.")
+                                           ,(V.length . authority $ m) == 1]
+                     where answerRRset m = (answer m) V.! 0
+                           mxRdata rrset = (rrsetRdatas rrset) V.! 0 
+                           mxPriorty rdata = let (RDFShort priority) = rdata V.! 0
                                                 in priority
-                           mxDomain rdata = let (RDFCompressedDomain name) = rdata ! 1
+                           mxDomain rdata = let (RDFCompressedDomain name) = rdata V.! 1
                                                 in name
 
 
