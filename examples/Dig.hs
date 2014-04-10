@@ -1,4 +1,4 @@
-import qualified Network.HDNS as DNS
+import qualified Network.ZDNS as DNS
 import Network.Socket hiding (recvFrom)
 import Network.Socket.ByteString
 import Network.BSD
@@ -12,13 +12,12 @@ import Data.ByteString.Lazy hiding (putStrLn, filter, length)
 main :: IO ()
 main = withSocketsDo $ do
     [ip , n, t] <- getArgs
-    case (DNS.fromString n, DNS.fromString t) of
-        (Just domain, Just qtype) -> doQuery ip domain qtype
+    case (DNS.mkDomain n, read t) of
+        (Just domain, qtype) -> doQuery ip domain qtype
         (Nothing, _) -> putStrLn $ "name isn't valid: " ++ n
-        (_, Nothing) -> putStrLn $ "type isn't valid: " ++ t
 
 
-doQuery :: String -> DNS.Domain -> DNS.TYPE -> IO ()
+doQuery :: String -> DNS.Domain -> DNS.RRType -> IO ()
 doQuery ip n t = 
     DNS.withResolver ip (\resolver -> do
         response <- DNS.doQuery resolver n t

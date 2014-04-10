@@ -1,0 +1,68 @@
+Name:                   zdns
+Version:                0.0.1
+Author:                 benjamin han <ben.han.cn@gmail.com>
+Maintainer:             benjamin han <ben.han.cn@gmail.com>
+License:                BSD3
+License-File:           LICENSE
+Synopsis:               DNS library in Haskell
+Description:
+  A thread-safe DNS library in pure Haskell
+Category:               Network
+Cabal-Version:          >= 1.10
+Build-Type:             Simple
+
+flag developer
+    default: False
+
+Library
+  Default-Language:     Haskell2010
+  GHC-Options:          -Wall
+  Exposed-Modules:      Network.ZDNS
+                        Network.ZDNS.Types
+                        Network.ZDNS.SimpleResolver
+  Other-Modules:        Network.ZDNS.Types.Name
+                        Network.ZDNS.Types.RRset
+                        Network.ZDNS.Types.Message
+                        Network.ZDNS.MessageRender
+                        Network.ZDNS.Util
+  Build-Depends:        base >= 4 && < 5
+                      , attoparsec
+                      , attoparsec-conduit
+                      , bytestring
+                      , containers
+                      , mtl
+                      , network >= 2.3
+                      , benutil
+                      , iproute
+                      , vector
+                      , resourcet
+                      , blaze-builder
+                      , RBTree > 0.0.5
+                      , transformers
+
+ if flag(developer)
+    ghc-options: -Werror
+    cpp-options: -DTEST
+
+Test-Suite spec
+  Type:                 exitcode-stdio-1.0
+  Default-Language:     Haskell2010
+  Hs-Source-Dirs:       test
+  Ghc-Options:          -Wall
+  Main-Is:              MainTestSuit.hs
+  Other-modules: 
+    DomainTreeProp
+    ZDNSGen
+  Build-Depends:        base
+                      , zdns
+                      , benutil
+                      , QuickCheck
+                      , test-framework
+                      , bytestring
+                      , RBTree > 0.0.5
+                      , test-framework-quickcheck2
+
+
+Source-Repository head
+  Type:                 git
+  Location:             https://github.com/ben-han-cn/hdns.git

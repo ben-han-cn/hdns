@@ -1,4 +1,4 @@
-module Network.HDNS.SimpleResolver (
+module Network.ZDNS.SimpleResolver (
     SimpleResolver(..)
  ,  makeResolver
  ,  withResolver
@@ -6,11 +6,13 @@ module Network.HDNS.SimpleResolver (
  ,  doQuery'
 )where
 
-import Network.HDNS.Internal 
-import Network.HDNS.Util (fromString, intToWord)
-import Network.HDNS.Decode (decode)
-import Network.HDNS.Encode (composeQuery)
+import Network.ZDNS.Types.Message
+import Network.ZDNS.Types.RRset
+import Network.ZDNS.Types.Name
+import Network.ZDNS.Util
+import Network.ZDNS.MessageRender
 import Data.Word
+import qualified Data.Vector as V
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BS 
 import qualified Data.ByteString.Lazy as BL 
@@ -54,20 +56,32 @@ ipToSockAddr ip = do
     a:_ <- getAddrInfo (Just hints) (Just ip) (Just "domain")
     return $ addrAddress a
 
-doQuery :: SimpleResolver -> Domain -> TYPE -> IO (Either String DNSFormat)
+doQuery :: SimpleResolver -> Domain -> RRType -> IO (Either String Message)
 doQuery res@(SR sock) n t = do
     doQuery' res n t
     (bs, _) <- recvFrom sock 512
-    return $ (decode . BL.fromChunks) [bs]
+    case parse  readMessage $ BL.fromChunks [bs] of
+        Left e -> return $ Left e
+        Right (m, _) -> return $ Right m
 
-doQuery' :: SimpleResolver -> Domain -> TYPE -> IO ()
+doQuery' :: SimpleResolver -> Domain -> RRType -> IO ()
 doQuery' (SR sock) n t = do
     sendAll sock $ generateQueryMsg n t
 
 qid :: IO Word16
 qid = intToWord <$> Num.rand 65535
 
-generateQueryMsg :: Domain -> TYPE -> B.ByteString
+generateQueryMsg :: Domain -> RRType -> B.ByteString
 generateQueryMsg n t = 
     BS.concat . BL.toChunks $ composeQuery (unsafePerformIO qid) 
-                                              [Question n t IN]
+                                           (Question n t IN)
+
+composeQuery :: Word16 -> Question -> BL.ByteString
+composeQuery qid' q = 
+    rend $ writeMessage message
+    where 
+        defaultFlag = setRD True 0
+        defaultHeader = Header qid' defaultFlag 1 0 0 0
+        message = Message defaultHeader q V.empty V.empty V.empty
+                
+
