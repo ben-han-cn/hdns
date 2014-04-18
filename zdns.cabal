@@ -26,9 +26,9 @@ Library
                         Network.ZDNS.MessageRender
                         Network.ZDNS.Util
   Build-Depends:        base >= 4 && < 5
+                      , bytestring
                       , attoparsec
                       , attoparsec-conduit
-                      , bytestring
                       , containers
                       , mtl
                       , network >= 2.3
@@ -39,6 +39,8 @@ Library
                       , blaze-builder
                       , RBTree > 0.0.5
                       , transformers
+                      , base64-bytestring
+                      , base16-bytestring
 
  if flag(developer)
     ghc-options: -Werror
@@ -54,15 +56,16 @@ Test-Suite spec
     DomainTreeProp
     ZDNSGen
   Build-Depends:        base
+                      , bytestring
                       , zdns
                       , benutil
                       , QuickCheck
                       , test-framework
-                      , bytestring
                       , RBTree > 0.0.5
                       , vector
+                      , base64-bytestring
+                      , base16-bytestring
                       , test-framework-quickcheck2
-
 
 Source-Repository head
   Type:                 git

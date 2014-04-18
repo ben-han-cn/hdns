@@ -130,6 +130,7 @@ writeRdataField (RDFLong d) = writeUint32 d
 writeRdataField (RDFIPv4 ip) = mconcat $ map (writeUint8 . intToWord)  (fromIPv4 ip)
 writeRdataField (RDFIPv6 ip) = mconcat $ map (writeUint16 . intToWord)  (fromIPv6 ip)
 writeRdataField (RDFBinary d) = writeData d
+writeRdataField (RDFByteBinary (len, d)) = (writeUint8 len) <> (writeData d)
 writeRdataField (RDFString d) = writeData d
         
 writeQuestion :: Question -> Render
@@ -230,6 +231,10 @@ readRdataField RIPv6 _ = (RDFIPv6 . toIPv6 . combine) <$> readUint8Array 16
                             where combine [] = []
                                   combine (a:b:cs) =  a * 256 + b : combine cs
 readRdataField RBinary len = RDFBinary <$> (readData $ fromIntegral len)
+readRdataField RByteBinary _ = do
+                                ll <- readUint8
+                                d <- readData $ fromIntegral ll
+                                return $ RDFByteBinary (ll, d)
 readRdataField RString _ = RDFString . fst <$> readLabel
         
 readLabel :: Parser (ByteString, Word16)
