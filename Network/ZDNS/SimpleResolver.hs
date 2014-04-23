@@ -8,6 +8,7 @@ module Network.ZDNS.SimpleResolver (
 )where
 
 import Network.ZDNS.Types.Message
+import Network.ZDNS.Types.EDNS
 import Network.ZDNS.Types.RRset
 import Network.ZDNS.Types.Name
 import Network.ZDNS.Util
@@ -109,5 +110,5 @@ composeQuery qid' q =
     rend $ writeMessage message
     where 
         defaultFlag = setRD True 0
-        defaultHeader = Header qid' defaultFlag 1 0 0 0
-        message = Message defaultHeader q V.empty V.empty V.empty
+        defaultHeader = Header qid' defaultFlag 1 0 0 1
+        message = Message defaultHeader q V.empty V.empty (V.fromList [createOPTRRset 4096 True])

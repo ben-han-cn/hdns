@@ -204,6 +204,14 @@ propRenderMessage = case parse readMessage (BL.fromStrict . B.pack $ messageRawD
 
 propRenderMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataMX) of
                         Right(m, _) -> (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawDataMX
+
+
+messageRawDataDNSSECQuery :: [Word8]
+messageRawDataDNSSECQuery = [174,69,1,0,0,1,0,0,0,0,0,1,3,99,111,109,0,0,6,0,1,0,0,41,16,0,0,0,128,0,0,0]
+propRenderDNSSECQuery = let header = Header 44613 (setRD True 0) 1 0 0 1
+                            question = Question (fromJust $ mkDomain "com") SOA IN
+                            m = Message header question V.empty V.empty (V.fromList [createOPTRRset 4096 True])
+                            in (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawDataDNSSECQuery
                                            
 main :: IO ()
 main = defaultMain tests
@@ -230,6 +238,7 @@ tests =
      ,  testProperty "parse whole message for mx" propParseMessageMX
      ,  testProperty "render whole message" propRenderMessage
      ,  testProperty "render whole message for mx" propRenderMessageMX
+     ,  testProperty "render whole message for dnssec query" propRenderDNSSECQuery
     ]
 
     ,testGroup "domain tree"

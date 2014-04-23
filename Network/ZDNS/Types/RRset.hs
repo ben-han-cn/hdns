@@ -16,7 +16,7 @@ import qualified Data.ByteString.Base16 as B16
 
 ----------------------------------------------------------------
 data RRType = A | AAAA | NS | TXT | MX | CNAME | SOA | PTR | SRV | NAPTR 
-              | DS | RRSIG | DNSKEY | NSEC3 | NSEC3PARAM
+              | OPT | DS | RRSIG | DNSKEY | NSEC3 | NSEC3PARAM
               | UNKNOWNTYPE Word16 deriving (Eq, Show, Read)
 
 instance CodeMapper RRType Word16 where
@@ -31,13 +31,17 @@ instance CodeMapper RRType Word16 where
               , (AAAA,          28) 
               , (SRV,           33) 
               , (NAPTR,         35) 
+              , (OPT,           41) 
               , (DS,            43) 
               , (RRSIG,         46) 
               , (DNSKEY,        48) 
               , (NSEC3,         50) 
               , (NSEC3PARAM,    51) 
               ]   
-    unknowCode = UNKNOWNTYPE
+    unknownCode = UNKNOWNTYPE
+
+    toWord (UNKNOWNTYPE t) = t
+    toWord ot = knownCodeToWord ot
 ----------------------------------------------------------------
 data RRClass = IN | CS | CH | HS | UNKNOWNKLASS Word16 deriving (Eq, Show, Read)
 instance CodeMapper RRClass Word16 where
@@ -47,7 +51,9 @@ instance CodeMapper RRClass Word16 where
                 , (CH,  3)
                 , (HS,  4)
                 ]
-    unknowCode = UNKNOWNKLASS
+    unknownCode = UNKNOWNKLASS
+    toWord (UNKNOWNKLASS c) = c
+    toWord oc = knownCodeToWord oc
 ----------------------------------------------------------------
 data RdataFieldType = RCompressedDomain
                     | RUnCompressedDomain
@@ -167,4 +173,5 @@ getRdataDescriptor RRSIG = [RShort, RByte, RByte, RLong, RLong, RLong, RShort, R
 getRdataDescriptor DNSKEY = [RShort, RByte, RByte, RBinary]
 getRdataDescriptor NSEC3 = [RByte, RByte, RShort, RByteBinary, RByteBinary, RBinary]
 getRdataDescriptor NSEC3PARAM = [RByte, RByte, RShort, RByteBinary]
+getRdataDescriptor OPT = [RBinary]
 getRdataDescriptor (UNKNOWNTYPE _) = [RBinary]

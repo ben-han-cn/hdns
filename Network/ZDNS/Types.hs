@@ -30,13 +30,16 @@ module Network.ZDNS.Types (
   , getAD
   , getRA
   , getRD
+  , setRD
   , getTC
 
   , RRset(..)
   , RdataField(..)
   , RdataFieldType(..)
+  , createOPTRRset
   ) where
 
 import Network.ZDNS.Types.Name
 import Network.ZDNS.Types.RRset
 import Network.ZDNS.Types.Message
+import Network.ZDNS.Types.EDNS

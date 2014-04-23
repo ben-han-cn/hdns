@@ -2,21 +2,22 @@
 module Network.ZDNS.Util where
 
 import Data.Tuple (swap)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Bits
 
 -- | A mapper from type to Integeral(Int, Word)
 class (Eq c, Integral i)  => CodeMapper c i where
     getMapper :: [(c, i)]
-    unknowCode :: i -> c
+    unknownCode :: i -> c
+    toWord :: c -> i
 
     fromWord :: i -> c
     fromWord n = 
-        fromMaybe (unknowCode n) $ lookup n (swapMapper getMapper)
+        fromMaybe (unknownCode n) $ lookup n (swapMapper getMapper)
         where swapMapper m = map swap $ m
 
-    toWord :: c -> i
-    toWord t = fromMaybe 0 $ lookup t getMapper
+    knownCodeToWord:: c -> i
+    knownCodeToWord t = fromJust $ lookup t getMapper
 
 
 intToWord :: (Integral a) => Int -> a
