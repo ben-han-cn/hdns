@@ -31,14 +31,13 @@ Library
                       , attoparsec
                       , attoparsec-conduit
                       , containers
+                      , random
                       , mtl
                       , network >= 2.3
-                      , benutil
                       , iproute
                       , vector
                       , resourcet
                       , blaze-builder
-                      , RBTree > 0.0.5
                       , transformers
                       , base64-bytestring
                       , base16-bytestring
@@ -59,11 +58,10 @@ Test-Suite spec
   Build-Depends:        base
                       , bytestring
                       , zdns
-                      , benutil
                       , QuickCheck
                       , test-framework
-                      , RBTree > 0.0.5
                       , vector
+                      , random
                       , base64-bytestring
                       , base16-bytestring
                       , test-framework-quickcheck2

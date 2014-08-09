@@ -21,7 +21,6 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Blaze.ByteString.Builder as BB
 import Network.Socket hiding (recvFrom)
 import Network.Socket.ByteString 
-import Ben.Util.Number as Num
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Functor ((<$>))
 import Control.Monad.Trans.Resource
@@ -87,7 +86,7 @@ queryUsingTCP res n t = do
     sendAll (srSocket newRes) (BB.toByteString . BB.fromWrite . BB.writeWord16be. fromIntegral . B.length $ message)
     sendAll (srSocket newRes) message
     (len, _) <- recvFrom (srSocket newRes) 2
-    (bs,_) <- recvFrom (srSocket newRes) (fromIntegral . Num.ntohs . B.unpack $ len)
+    (bs,_) <- recvFrom (srSocket newRes) (fromIntegral . ntohs . B.unpack $ len)
     releaseResolver newRes
     case parse  readMessage $ BL.fromChunks [bs] of
         Left e -> return $ Left e
@@ -98,7 +97,7 @@ doQuery' sr n t = do
     sendAll (srSocket sr) $ generateQueryMsg n t
 
 qid :: IO Word16
-qid = intToWord <$> Num.rand 65535
+qid = intToWord <$> rand 65535
 
 generateQueryMsg :: Domain -> RRType -> B.ByteString
 generateQueryMsg n t = 

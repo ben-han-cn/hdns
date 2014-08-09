@@ -4,6 +4,10 @@ module Network.ZDNS.Util where
 import Data.Tuple (swap)
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Bits
+import System.Random (getStdRandom, randomR)
+import Data.Word
+import Data.Bits (shiftL)
+import Data.List (intersperse)
 
 -- | A mapper from type to Integeral(Int, Word)
 class (Eq c, Integral i)  => CodeMapper c i where
@@ -41,3 +45,22 @@ setFlag :: (Bits a, Integral a) => a -> FlagDescriptor -> Int -> a
 setFlag flag fd@(FlagDescriptor _ p) val = 
     flag .|. valInFlag
     where valInFlag = ((intToWord val) `shiftL` p) .&. (flagMask fd) 
+
+rand :: Int -> IO Int
+rand m = randRange 0 m
+
+randRange :: Int -> Int -> IO Int
+randRange l u = getStdRandom (randomR (l, u))
+
+ntohs :: [Word8] -> Word16
+ntohs bs = let (a:b:[]) = bs
+               in (shiftL (fromIntegral a) 8) + (fromIntegral b)
+
+ntohl :: [Word8] -> Word32
+ntohl bs = let (a:b:c:d:[]) = bs
+               ab = ntohs [a,b]
+               cd = ntohs [c,d]
+               in (shiftL (fromIntegral ab) 16) + (fromIntegral cd)
+
+join :: String -> [String] -> String
+join sep strs = concat $ intersperse sep strs

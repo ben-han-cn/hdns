@@ -7,7 +7,7 @@ import qualified Data.ByteString.Char8 as BC
 import Data.Char (toLower)
 import qualified Data.Vector as V
 import qualified Data.List as L
-import Ben.Util.String (join)
+import Network.ZDNS.Util
 
 ----------------------------------------------------------------
 -- | type label
