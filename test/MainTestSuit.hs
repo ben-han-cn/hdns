@@ -12,12 +12,10 @@ import Data.Maybe
 import Data.Word
  
 import Network.ZDNS
-import Ben.Util.String (join)
 import Control.Monad (replicateM)
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
 import qualified Data.ByteString.Lazy as BL
-import DomainTreeProp
 import ZDNSGen
 
 
@@ -94,6 +92,7 @@ propSuperDomain = and $ map checkSuperResult domainSuperData
 domainRawData :: [([Word8], String, Bool)]
 domainRawData = [([3, 119, 119, 119, 5, 98, 97, 105, 100, 117, 3, 99, 111, 109, 0], "www.baidu.com", True)
                 ,([3, 119, 119, 119, 5, 98, 97, 105, 100, 117, 3, 99, 111, 109, 0, 2], "www.baidu.com.", True)
+                ,([1,97,12,114,111,111,116,45,115,101,114,118,101,114,115,3,110,101,116,0], "a.root-servers.net.", True)
                 ,([3, 119, 119, 119, 0], "www.", True)
                 ,([3, 119, 119, 119, 1, 0], "", False)
                 ,([100, 119, 119, 119, 0], ".", False)
@@ -197,6 +196,9 @@ propParseMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRaw
                                                 in name
 
 
+messageRawDataAAAA :: [Word8]
+messageRawDataAAAA = [98,197,129,128,0,1,0,1,0,0,0,1,1,97,12,114,111,111,116,45,115,101,114,118,101,114,115,3,110,101,116,0,0,28,0,1,192,12,0,28,0,1,0,0,6,67,0,16,32,1,5,3,186,62,0,0,0,0,0,0,0,2,0,48,0,0,41,2,0,0,0,128,0,0,0]
+
 messageRawData2 :: [Word8]
 messageRawData2 = [248, 0, 129, 128, 0, 1, 0, 18, 0, 0, 0, 0, 4, 110, 101, 119, 115, 4, 115, 105, 110, 97, 3, 99, 111, 109, 2, 99, 110, 0, 0, 1, 0, 1, 192, 12, 0, 5, 0, 1, 0, 0, 0, 14, 0, 10, 7, 106, 117, 112, 105, 116, 101, 114, 192, 17, 192, 46, 0, 5, 0, 1, 0, 0, 13, 226, 0, 6, 3, 97, 114, 97, 192, 17, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 38, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 39, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 40, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 41, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 42, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 43, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 44, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 45, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 183, 60, 187, 46, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 31, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 32, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 33, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 34, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 35, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 37, 192, 68, 0, 1, 0, 1, 0, 0, 0, 14, 0, 4, 58, 63, 236, 38]
 propRenderMessage = case parse readMessage (BL.fromStrict . B.pack $ messageRawData2) of
@@ -204,6 +206,9 @@ propRenderMessage = case parse readMessage (BL.fromStrict . B.pack $ messageRawD
 
 propRenderMessageMX = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataMX) of
                         Right(m, _) -> (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawDataMX
+
+propRenderMessageAAAA = case parse readMessage (BL.fromStrict . B.pack $ messageRawDataAAAA) of
+                        Right(m, _) -> (B.unpack . BL.toStrict $ rend (writeMessage m)) == messageRawDataAAAA
 
 
 messageRawDataDNSSECQuery :: [Word8]
@@ -237,13 +242,8 @@ tests =
      ,  testProperty "parse whole message for A" propParseMessageA
      ,  testProperty "parse whole message for mx" propParseMessageMX
      ,  testProperty "render whole message" propRenderMessage
+     ,  testProperty "render whole message for AAAA" propRenderMessageAAAA
      ,  testProperty "render whole message for mx" propRenderMessageMX
      ,  testProperty "render whole message for dnssec query" propRenderDNSSECQuery
-    ]
-
-    ,testGroup "domain tree"
-    [
-        testProperty "domain tree to list" propTreeToList
-     ,  testProperty "search less equal " propSearchLessEqual
     ]
  ]

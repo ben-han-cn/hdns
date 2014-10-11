@@ -16,6 +16,7 @@ module Network.ZDNS(
  ,  R.readQuestion
  ,  R.readHeader
  ,  R.readMessage
+ ,  join
 -- #endif
  ,  R.rend
  ,  R.writeDomain
@@ -26,5 +27,6 @@ module Network.ZDNS(
   ) where
 
 import Network.ZDNS.Types
+import Network.ZDNS.Util
 import Network.ZDNS.SimpleResolver
 import qualified Network.ZDNS.MessageRender as R

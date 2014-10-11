@@ -226,10 +226,8 @@ readRdataField RByte _ = RDFByte <$> readUint8
 readRdataField RShort _ = RDFShort <$> readUint16
 readRdataField RTXT len = RDFTXT <$> readTXTLabels len V.empty
 readRdataField RLong _ = RDFLong <$> readUint32
-readRdataField RIPv4 _ = (RDFIPv4 . toIPv4 ) <$> readUint8Array 4
-readRdataField RIPv6 _ = (RDFIPv6 . toIPv6 . combine) <$> readUint8Array 16
-                            where combine [] = []
-                                  combine (a:b:cs) =  a * 256 + b : combine cs
+readRdataField RIPv4 _ = (RDFIPv4 . toIPv4) <$> readArray 4 readUint8 
+readRdataField RIPv6 _ = (RDFIPv6 . toIPv6) <$> readArray 8 readUint16
 readRdataField RBinary len = RDFBinary <$> (readData $ fromIntegral len)
 readRdataField RByteBinary _ = do
                                 ll <- readUint8
@@ -299,11 +297,8 @@ readData len = do
     modify $ moveReadPos len
     lift (take len) 
 
-readUint8Array :: Int -> Parser [Int]
-readUint8Array n = toInts <$> (readData n)
-    where 
-        toInts :: ByteString -> [Int]
-        toInts bs = map fromIntegral $ unpack bs
+readArray :: Integral a => Int -> Parser a -> Parser [Int]
+readArray count elem_reader = (map fromIntegral) <$> (replicateM count elem_reader)
 
 parse :: Parser a -> BL.ByteString -> Either String (a, OffsetToDomain)
 parse parser bs = AL.eitherResult $ AL.parse (runStateT parser initParserState) bs

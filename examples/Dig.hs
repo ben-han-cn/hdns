@@ -24,4 +24,3 @@ doQuery ip n t =
         case response of
             (Right msg) -> print  msg
             (Left error) -> print $ "error:\n" ++ error)
-

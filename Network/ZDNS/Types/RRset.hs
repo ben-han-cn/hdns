@@ -67,17 +67,17 @@ data RdataFieldType = RCompressedDomain
                     | RIPv4
                     | RIPv6 deriving (Eq)
 
-data RdataField = RDFCompressedDomain Domain
-                | RDFUnCompressedDomain Domain
-                | RDFByte Word8
-                | RDFShort Word16
-                | RDFLong Word32
-                | RDFBinary ByteString
-                | RDFByteBinary (Word8, ByteString)
-                | RDFString ByteString
-                | RDFTXT (V.Vector ByteString)
-                | RDFIPv4 IPv4
-                | RDFIPv6 IPv6 deriving (Eq, Ord)
+data RdataField = RDFCompressedDomain !Domain
+                | RDFUnCompressedDomain !Domain
+                | RDFByte !Word8
+                | RDFShort !Word16
+                | RDFLong !Word32
+                | RDFBinary !ByteString
+                | RDFByteBinary !(Word8, ByteString)
+                | RDFString !ByteString
+                | RDFTXT !(V.Vector ByteString)
+                | RDFIPv4 !IPv4
+                | RDFIPv6 !IPv6 deriving (Eq, Ord)
 
 type Rdata = V.Vector RdataField
 showRdata :: Rdata -> RRType -> String

@@ -27,8 +27,8 @@ maxDomainLen :: Int
 maxDomainLen = 255
 
 data Label = Label {
-    labelData   :: BC.ByteString
- ,  labelLen    :: Int
+    labelData   :: !BC.ByteString
+ ,  labelLen    :: !Int
 } 
 
 emptyLabel :: Label 
@@ -40,6 +40,7 @@ downcaseLabel (Label d len)  = Label (BC.map toLower d) len
 instance Eq Label where
     (==) (Label d1 l1) (Label d2 l2) 
             | l1 /= l2 = False
+            | l1 == 1 && (BC.length d1) /= (BC.length d2) = False
             | otherwise = and $ BC.zipWith charIsEqal d1 d2
             where charIsEqal c1 c2 = toLower c1 == toLower c2
     
@@ -67,8 +68,8 @@ instance Show Label where
 -- | type Domain
 type LabelVec = V.Vector Label
 data Domain = Domain {
-    labels :: LabelVec
- ,  domainLength :: Int
+    labels :: !LabelVec
+ ,  domainLength :: !Int
 } 
 
 labelCount :: Domain -> Int
@@ -96,7 +97,6 @@ mkLabels s labels = if L.null ls
                             Nothing -> Nothing
                             Just l -> mkLabels (L.drop 1 left) (V.snoc labels l)
                      where (ls, left) = L.break (\c -> c == '.') s 
-
 
 instance Show Domain where 
     show n = join "." (V.toList . V.map show $ labels n)

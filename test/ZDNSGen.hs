@@ -18,7 +18,6 @@ import qualified Network.ZDNS as DNS
 import qualified Data.List as L
 import Control.Monad (replicateM)
 import Control.Applicative ((<$>))
-import Ben.Util.String (join)
 import Data.Maybe (fromJust)
 
 labelGen :: Gen String
@@ -35,7 +34,7 @@ relativeNameGen :: Gen String
 relativeNameGen = do 
     label_count <- choose (1, 126)
     label_strs <- replicateM label_count labelGen
-    return $ toRelative $ take 253 $ join "." label_strs
+    return $ toRelative $ take 253 $ DNS.join "." label_strs
     where toRelative s = if last s == '.' then init s else s
 
 nameGen :: Gen String
